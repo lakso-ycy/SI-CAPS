@@ -133,6 +133,4 @@ foreach ($cleaned_data as &$item) {
 
 
 
-// 🔹 Ubah ke array numerik agar JSON rapi
-echo json_encode(array_values($cleaned_data), JSON_PRETTY_PRINT);
-?>
+
