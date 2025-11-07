@@ -96,7 +96,7 @@
                                 </ul>
                             </div> <!-- navbar collapse -->
                             <div class="button home-btn">
-                                <a href="?page=home#contact" class="btn">Contact Us</a>
+                                <a href="#" class="btn">Contact Us</a>
                             </div>
                         </nav>
                         <!-- End Navbar -->

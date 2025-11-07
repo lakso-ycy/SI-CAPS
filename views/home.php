@@ -96,9 +96,9 @@
                                     </li>
                                 </ul>
                             </div> <!-- navbar collapse -->
-              <div class="button home-btn">
-                <a href="#contact" class="btn">Contact Us</a>
-              </div>
+                            <div class="button home-btn">
+                                <a href="#" class="btn">Contact Us</a>
+                            </div>
                         </nav>
                         <!-- End Navbar -->
                     </div>
@@ -132,14 +132,14 @@
             </div>
             <div class="price-info">
               <div class="row">
-        <div class="col-lg-12 col-md-12 col-12">
-          <!-- Frontend-only placeholder: carousel disabled (no backend) -->
-          <div class="price-container">
-            <div class="alert alert-info" role="alert" style="margin-top:12px;">
-              Komponen kartu harian sementara dinonaktifkan (frontend-only). Hubungkan API eksternal untuk menampilkan data real.
-            </div>
-          </div>
-        </div>
+                <div class="col-lg-12 col-md-12 col-12">
+                    <?php include $_SERVER['DOCUMENT_ROOT'] . '/views/carousel.php'; ?>
+                </div>
+                <!-- <div class="col-lg-6 col-md-12">
+                    <div class="custom-table-wrapper">
+                      <?php #include $_SERVER['DOCUMENT_ROOT'] . '/views/average_kab.php'; ?> 
+                    </div>
+                </div> -->
               </div>
             </div>
 
@@ -269,7 +269,7 @@
                 <p>Laporan tindak pidana korupsi klik <a href="https://docs.google.com/forms/d/e/1FAIpQLSeGq7QXoo8h-02Om8l6bsNF4Y3OSdDxFNpE5AuJkc3zS9WP2A/viewform">WBS Inspektorat</a></p>
                 <p>Pelaporan gratifikasi klik <a href="https://gol.kpk.go.id">gol.kpk.go.id</a></p>
             </div>
-      <div class="footer-section" id="contact">
+            <div class="footer-section">
                 <h3>📞 Kontak Kami</h3>
                 <p>Kantor Dinas Komunikasi dan Informatika Pamekasan</p>
                 <p>Jl. Jokotole Gg. IV No. 1, Kel. Barurambat Kota, Kec. Pamekasan, Kabupaten Pamekasan, Jawa Timur 69317</p>
@@ -296,29 +296,17 @@
         </div>
     </div>
     <!-- ========================= JS here ========================= -->
-    <!-- Dependencies first -->
-    <script src="./node_modules/jquery/dist/jquery.js" defer></script>
-    <script src="./node_modules/flatpickr/dist/flatpickr.js" defer></script>
-    <script src="./node_modules/chart.js/dist/chart.umd.js" defer></script>
-    <script src="./node_modules/alpinejs/dist/cdn.js" defer></script>
-
-    <!-- Vendor scripts -->
-    <script src="assets/js/bootstrap.min.js" defer></script>
-    <script src="assets/js/wow.min.js" defer></script>
-    <script src="assets/js/tiny-slider.js" defer></script>
-    <script src="assets/js/glightbox.min.js" defer></script>
-    <script src="assets/js/count-up.min.js" defer></script>
-
-    <!-- App scripts -->
-    <script src="assets/js/main.js" defer></script>
-    <script src="assets/js/changes.js" defer></script>
-
-    <!-- Safety fallback: hide preloader after 3s even if scripts fail -->
-    <script>
-      window.addEventListener('DOMContentLoaded', function(){
-        setTimeout(function(){ var pre=document.querySelector('.preloader'); if(pre){ pre.style.opacity='0'; pre.style.display='none'; } }, 3000);
-      });
-    </script>
+    <script src="assets/js/bootstrap.min.js"></script>
+    <script src="assets/js/wow.min.js"></script>
+    <script src="assets/js/tiny-slider.js"></script>
+    <script src="assets/js/glightbox.min.js"></script>
+    <script src="assets/js/count-up.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/changes.js"></script>
+    <script src="./node_modules/chart.js/dist/chart.umd.js"></script>
+    <script src="./node_modules/jquery/dist/jquery.js"></script>
+    <script src="./node_modules/alpinejs/dist/cdn.js"></script>
+    <script src="./node_modules/flatpickr/dist/flatpickr.js"></script>
 
 </body>
 
