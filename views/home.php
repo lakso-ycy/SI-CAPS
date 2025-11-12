@@ -96,9 +96,9 @@
                                     </li>
                                 </ul>
                             </div> <!-- navbar collapse -->
-                            <div class="button home-btn">
-                                <a href="#" class="btn">Contact Us</a>
-                            </div>
+              <div class="button home-btn">
+                <a href="?page=home#contact" class="btn">Contact Us</a>
+              </div>
                         </nav>
                         <!-- End Navbar -->
                     </div>
@@ -261,7 +261,7 @@
         </div>
     </section>
     <!-- End Hero Area -->
-    <footer class="footer">
+  <footer class="footer" id="contact">
         <div class="footer-container">
             <div class="footer-section">
                 <h3>📌 Link Pengaduan</h3>
