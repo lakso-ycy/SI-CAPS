@@ -33,8 +33,31 @@ function initFlatpickr() {
 }
 
 function updateData(date) {
-    // Frontend-only mode: hanya memicu re-render grafik lokal (tanpa fetch PHP views)
-    initializeCharts();
+    Promise.all([
+        fetch(`views/carousel.php?tanggal=${date}`).then(response => response.text()),
+        fetch(`views/average_kab.php?tanggal=${date}`).then(response => response.text())
+    ])
+    .then(([carouselHtml, averageKabHtml]) => {
+        // Update elemen container untuk carousel
+        const carouselContainer = document.querySelector(".price-container");
+        if (carouselContainer) {
+            carouselContainer.innerHTML = carouselHtml;
+        } else {
+            console.error("Error: Elemen .price-container tidak ditemukan!");
+        }
+
+        // Update elemen container untuk average kabupaten
+        const averageKabContainer = document.querySelector(".custom-table");
+        if (averageKabContainer) {
+            averageKabContainer.innerHTML = averageKabHtml;
+        } else {
+            console.error("Error: Elemen .custom-table tidak ditemukan!");
+        }
+
+        // Render ulang grafik setelah data dimuat
+        initializeCharts();
+    })
+    .catch(error => console.error("Gagal memuat data:", error));
 }
 
 
@@ -102,20 +125,165 @@ function updateAllCharts() {
     let selectedVariant = $("#variant").val();
     let selectedDate = $("#datePicker").val();
 
-    // Frontend-only mode: backend API dihapus. Tampilkan placeholder jika kanvas ada.
-    renderPlaceholderChart("chartPamekasan", "Harga Harian – data offline");
-    renderPlaceholderChart("chartMadura", "Harga Harian Madura – data offline");
-    renderPlaceholderChart("priceChart", "Harga Tahunan – data offline");
+    // 4 grafik kota → API `fetch_prices.php` (Data 1 minggu)
+    fetchChartDataRegion("chartPamekasan", selectedVariant, selectedDate, "fetch_prices.php");
+    fetchChartDataMadura("chartMadura", selectedVariant, selectedDate, "get_average_madura.php");
+
+    // Grafik nasional → API `fetch_month_prices.php` (Data 1 tahun)
+    fetchChartData("priceChart", selectedVariant, selectedDate, "fetch_month_prices.php");
 }
 
 function fetchChartDataRegion(chartId, variantId, selectedDate, apiEndpoint) {
-    // Backend dihapus – fungsi ini tidak lagi mem-fetch data
-    renderPlaceholderChart(chartId, "Harga Harian – data offline");
+    let canvas = document.getElementById(chartId);
+    if (!canvas) {
+        console.warn(`Canvas ${chartId} tidak ditemukan di halaman.`);
+        return;
+    }
+
+    let ctx = canvas.getContext("2d");
+
+    $.ajax({
+        url: `api/${apiEndpoint}?variant_id=${variantId}&tanggal=${selectedDate}`,
+        method: "GET",
+        success: function (response) {
+
+            if (!response.date || !response.pamekasan || !response.jawa_timur || !response.nasional) {
+                console.warn(`Data tidak tersedia untuk ${chartId}`);
+                return;
+            }
+
+            let allDates = response.date.map(date => new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+
+            if (charts[chartId]) {
+                charts[chartId].destroy();
+            }
+
+            charts[chartId] = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: allDates, 
+                    datasets: [
+                        {
+                            label: "Pamekasan",
+                            data: response.pamekasan,
+                            borderColor: "#ff0000",
+                            backgroundColor: "#ff000020",
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: "Jawa Timur",
+                            data: response.jawa_timur,
+                            borderColor: "#0000ff",
+                            backgroundColor: "#0000ff20",
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: "Nasional",
+                            data: response.nasional,
+                            borderColor: "#008000",
+                            backgroundColor: "#00800020",
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: "top" },
+                        title: { display: true, text: "Harga Harian" }
+                    },
+                    scales: {
+                        x: { grid: { display: true, color: "#E0E0E0" } },
+                        y: {
+                            beginAtZero: false,
+                            grid: { display: true, color: "#E0E0E0" },
+                            ticks: { callback: (value) => `Rp${value.toLocaleString()}` }
+                        }
+                    }
+                }
+            });
+        },
+        error: function (err) {
+            console.error(`Gagal mengambil data untuk ${chartId}:`, err);
+        }
+    });
 }
 
 function fetchChartDataMadura(chartId, variantId, selectedDate, apiEndpoint) {
-    // Backend dihapus – fungsi ini tidak lagi mem-fetch data
-    renderPlaceholderChart(chartId, "Harga Harian Madura – data offline");
+    let canvas = document.getElementById(chartId);
+    if (!canvas) {
+        console.warn(`Canvas ${chartId} tidak ditemukan di halaman.`);
+        return;
+    }
+
+    let ctx = canvas.getContext("2d");
+
+    $.ajax({
+        url: `api/${apiEndpoint}?variant_id=${variantId}&tanggal=${selectedDate}`,
+        method: "GET",
+        success: function (response) {
+
+            if (!response.date) {
+                console.warn(`Data tidak tersedia untuk ${chartId}`);
+                return;
+            }
+
+            let allDates = response.date.map(date => new Date(date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+
+            if (charts[chartId]) {
+                charts[chartId].destroy();
+            }
+
+            charts[chartId] = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: allDates, 
+                    datasets: [
+                        {
+                            label: "Pamekasan",
+                            data: response.pamekasan,
+                            borderColor: "#ff0000",
+                            backgroundColor: "#ff000020",
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: "Bangkalan",
+                            data: response.bangkalan,
+                            borderColor: "#0000ff",
+                            backgroundColor: "#0000ff20",
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: "Sampang",
+                            data: response.sampang,
+                            borderColor: "#008000",
+                            backgroundColor: "#00800020",
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: "Sumenep",
+                            data: response.sumenep,
+                            borderColor: "#ffa500",
+                            backgroundColor: "#ffa50020",
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: "top" }, title: { display: true, text: "Harga Harian" } },
+                    scales: { x: { grid: { display: true } }, y: { beginAtZero: false } }
+                }
+            });
+        }
+    });
 }
 
 
@@ -123,47 +291,98 @@ function fetchChartDataMadura(chartId, variantId, selectedDate, apiEndpoint) {
  * 🔹 Fungsi untuk mengambil data harga dan memperbarui grafik
  */
 function fetchChartData(chartId, variantId, selectedDate, apiEndpoint) {
-    // Backend dihapus – fungsi ini tidak lagi mem-fetch data
-    renderPlaceholderChart(chartId, "Harga Tahunan – data offline");
-}
+    let canvas = document.getElementById(chartId);
 
-// Utility: render placeholder chart with simple dummy data
-function renderPlaceholderChart(chartId, title) {
-    const canvas = document.getElementById(chartId);
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    if (!canvas) {
+        console.warn(`Canvas ${chartId} tidak ditemukan di halaman.`);
+        return;
+    }
 
-    if (charts[chartId]) charts[chartId].destroy();
+    let ctx = canvas.getContext("2d");
 
-    const labels = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"]; 
-    const data = labels.map((_, i) => 10000 + Math.round(Math.sin(i/2) * 1000) + i * 150);
+    $.ajax({
+        url: `api/${apiEndpoint}?variant_id=${variantId}&tanggal=${selectedDate}`,
+        method: "GET",
+        success: function (response) {
 
-    charts[chartId] = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels,
-            datasets: [
-                {
-                    label: "Contoh Data",
-                    data,
-                    borderColor: "#2D6AE3",
-                    backgroundColor: "#2D6AE320",
-                    fill: false,
-                    tension: 0.3
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: "top" },
-                title: { display: true, text: title }
-            },
-            scales: {
-                y: {
-                    ticks: { callback: (v) => `Rp${v.toLocaleString("id-ID")}` }
-                }
+            if (!response.last_year || !response.this_year) {
+                console.warn(`Data tidak tersedia untuk ${chartId}`);
+                return;
             }
+
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+            function mapDataToMonths(dateArray, hargaArray) {
+                let mappedData = new Array(12).fill(null);
+                dateArray.forEach((date, index) => {
+                    let monthIndex = months.indexOf(date.split(" ")[0]); 
+                    if (monthIndex !== -1) {
+                        mappedData[monthIndex] = hargaArray[index] || null;
+                    }
+                });
+                return mappedData;
+            }
+
+            let lastYearMapped = mapDataToMonths(response.last_year.date, response.last_year.harga);
+            let thisYearMapped = mapDataToMonths(response.this_year.date, response.this_year.harga);
+
+            let allData = lastYearMapped.concat(thisYearMapped).filter((v) => v !== null);
+
+            let yMin = Math.min(...allData) * 0.95; // Sedikit lebih rendah dari harga terendah
+            let yMax = Math.max(...allData) * 1.05; // Tambahkan margin di atas harga tertinggi
+
+            if (charts[chartId]) {
+                charts[chartId].destroy();
+            }
+
+            charts[chartId] = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: "Harga 2024",
+                            data: lastYearMapped,
+                            borderColor: "#ff0000",
+                            backgroundColor: "#ff000020",
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: "Harga 2025",
+                            data: thisYearMapped,
+                            borderColor: "#0000ff",
+                            backgroundColor: "#0000ff20",
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: "top" },
+                        title: { display: true, text: "Harga Tahunan Pamekasan" }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { display: true, color: "#E0E0E0" },
+                            ticks: { autoSkip: false }
+                        },
+                        y: {
+                            min: yMin,
+                            max: yMax,
+                            grid: { display: true, color: "#E0E0E0" },
+                            ticks: {
+                                callback: (value) => `Rp${value.toLocaleString()}`
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        error: function (err) {
+            console.error(`Gagal mengambil data untuk ${chartId}:`, err);
         }
     });
 }
