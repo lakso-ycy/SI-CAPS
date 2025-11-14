@@ -39,18 +39,18 @@ Proyek ini adalah sistem informasi monitoring harga komoditas pangan di Kabupate
 ### Cara Kerja Integrasi FE-BE
 
 ```
-┌─────────────┐          HTTP Request           ┌──────────────┐
-│             │  ────────────────────────────>   │              │
-│  Frontend   │   (fetch/file_get_contents)      │   Backend    │
-│  (Views)    │                                   │  (API PHP)   │
-│             │  <────────────────────────────   │              │
-└─────────────┘      JSON Response               └──────────────┘
-                                                         │
-                                                         ▼
-                                                  ┌──────────────┐
-                                                  │   Database   │
-                                                  │   (MySQL)    │
-                                                  └──────────────┘
+┌──────────────────┐       HTTP Request        ┌────────────────────────┐
+│                  │ ──────────────────────────> │                        │
+│   Frontend       │  (fetch/file_get_contents)  │  Backend Production    │
+│   (Views)        │                             │  diskominfopamekasan   │
+│  Localhost/Prod  │ <────────────────────────── │      .my.id/api/       │
+└──────────────────┘      JSON Response          └────────────────────────┘
+                                                            │
+                                                            ▼
+                                                   ┌─────────────────┐
+                                                   │    Database     │
+                                                   │ MySQL (Remote)  │
+                                                   └─────────────────┘
 ```
 
 1. **User** membuka halaman (misal: Dashboard)
@@ -70,7 +70,7 @@ Proyek ini adalah sistem informasi monitoring harga komoditas pangan di Kabupate
 ### Prerequisites
 - PHP 7.4+ installed
 - Node.js & npm (untuk dependencies frontend)
-- MySQL/MariaDB (jika ingin setup backend lokal)
+- ❌ **MySQL TIDAK DIPERLUKAN** (Backend sudah production)
 
 ### Setup Frontend Lokal
 
@@ -95,29 +95,10 @@ Proyek ini adalah sistem informasi monitoring harga komoditas pangan di Kabupate
    http://localhost:8000/?page=home
    ```
 
-### Setup Backend Lokal (Opsional)
-
-Jika ingin menjalankan backend API secara lokal:
-
-1. **Setup database MySQL:**
-   - Import database schema
-   - Update konfigurasi koneksi di setiap file `api/*.php`
-
-2. **Update endpoint API di frontend:**
-   - Edit `views/carousel.php`, `views/average.php`, dll
-   - Ganti URL dari:
-     ```php
-     http://diskominfopamekasan.my.id/api/get_data.php
-     ```
-     Menjadi:
-     ```php
-     http://localhost:8000/api/get_data.php
-     ```
-
-3. **Test endpoint:**
-   ```bash
-   curl http://localhost:8000/api/get_data.php?tanggal=2025-01-14
-   ```
+**✅ Selesai!** Data akan otomatis fetch dari backend production:
+- URL API: `http://diskominfopamekasan.my.id/api/`
+- Database: Remote MySQL (production)
+- Tidak perlu setup database atau backend lokal
 
 ---
 
